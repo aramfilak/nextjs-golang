@@ -16,13 +16,39 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
+- `api`: a Go HTTP API using only the standard library
 - `docs`: a [Next.js](https://nextjs.org/) app
 - `web`: another [Next.js](https://nextjs.org/) app
 - `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
 - `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
 - `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+The frontend apps and shared packages use [TypeScript](https://www.typescriptlang.org/). The API requires Go 1.22 or newer on `PATH` and is discovered through the root `go.work` using Turborepo's experimental Go workspace support.
+
+### Go API
+
+Start the API from the repository root:
+
+```sh
+pnpm dev --filter=api
+```
+
+The API also starts with `pnpm dev`. Turborepo watches the Go module and restarts
+the API when its files change. Next.js keeps its built-in hot reload. The API listens on port 8080:
+
+```sh
+curl http://localhost:8080/hello/Max
+```
+
+Response: `Hello Max` (`text/plain; charset=utf-8`). The route is `GET /hello/{username}`.
+
+Build, test, and lint the API through the native Go tasks:
+
+```sh
+pnpm exec turbo run build test lint --filter=api
+```
+
+`pnpm test` runs the Go tests, and `pnpm format` also formats Go sources.
 
 ### Utilities
 
@@ -157,3 +183,15 @@ Learn more about the power of Turborepo:
 - [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
 - [Configuration Options](https://turborepo.dev/docs/reference/configuration)
 - [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+
+## Todo list
+
+Run `pnpm dev` from the repository root to start the web app and Go API together.
+Open `http://localhost:3000` to add tasks, mark them complete, filter the list, or delete them.
+The web app proxies `/api/*` to the Go API at `http://127.0.0.1:8080`.
+
+The API provides `GET /todos`, `POST /todos` with `{"title":"Task"}`,
+`PATCH /todos/{id}` with `{"completed":true}`, and `DELETE /todos/{id}`.
+Titles must contain 1–200 characters. Tasks are shared by all clients and stored in memory;
+restarting the API clears the list.
+# nextjs-golang
